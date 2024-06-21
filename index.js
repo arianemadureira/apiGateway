@@ -3,31 +3,28 @@ const { createProxyMiddleware } = require('http-proxy-middleware');
 const UserController = require('./auth/controllers/UserController');
 const Auth = require("./auth/middler/auth");
 const Logger = require("./auth/middler/logger");
+require('dotenv').config();
 
 const app = express();
 const port = 3007;
 
-const {
-  PAGAMENTOS_API_URL,
-  PEDIDOS_API_URL,
-} = require('./URL');
 
 // Configuração dos middlewares para encaminhamento das solicitações
 const optionsPedidos = {
-  target: PEDIDOS_API_URL,
-  changeOrigin: true, 
+  target: process.env.PEDIDOS_API_URL,
+  changeOrigin: true,
   logger: console,
 };
 
 const optionsPagamentos = {
-  target: PAGAMENTOS_API_URL,
-  changeOrigin: true, 
+  target: process.env.PAGAMENTOS_API_URL,
+  changeOrigin: true,
   logger: console,
 };
 
 const optionsEntrega = {
-    target: Entrega_API_URL,
-    changeOrigin: true, 
+    target: process.env.Entrega_API_URL,
+    changeOrigin: true,
     logger: console,
   };
 
@@ -35,6 +32,9 @@ const optionsEntrega = {
 const pedidosProxy = createProxyMiddleware(optionsPedidos);
 const pagamentosProxy = createProxyMiddleware(optionsPagamentos);
 const entregaProxy = createProxyMiddleware(optionsEntrega);
+
+// Rota padrão
+app.get('/', (req, res) => res.send('Hello Gateway API'));
 
 // Rota para autenticação de usuário
 app.post('/user/auth', UserController.auth);
@@ -53,14 +53,16 @@ app.post('/pedidos', pedidosProxy);
 app.put('/pedidos/update/:id', pedidosProxy);
 app.get('/pedidos/:id', pedidosProxy);
 
+app.get('/produto', pedidosProxy);
+
 
 app.get('/producao', entregaProxy);
 app.post('/producao', entregaProxy);
 app.put('/producao/update/:idPedido', entregaProxy);
 app.get('/producao/:idPedido', entregaProxy);
 
-// Rota padrão
-app.get('/', (req, res) => res.send('Hello Gateway API'));
+
+
 
 // Iniciando o servidor
 app.listen(port, () => console.log(`Example app listening on port ${port}!`));
