@@ -6,32 +6,21 @@ const Logger = require("./auth/middler/logger");
 require('dotenv').config();
 
 const app = express();
-const port = 3007;
+const port = 3001;
 
 
 // Configuração dos middlewares para encaminhamento das solicitações
-const optionsPedidos = {
-  target: process.env.PEDIDOS_API_URL,
+const optionsAgendamento = {
+  target: process.env.Agendamento_API_URL,
   changeOrigin: true,
   logger: console,
 };
 
-const optionsPagamentos = {
-  target: process.env.PAGAMENTOS_API_URL,
-  changeOrigin: true,
-  logger: console,
-};
 
-const optionsEntrega = {
-    target: process.env.Entrega_API_URL,
-    changeOrigin: true,
-    logger: console,
-  };
 
 // Middlewares de proxy para os microserviços
-const pedidosProxy = createProxyMiddleware(optionsPedidos);
-const pagamentosProxy = createProxyMiddleware(optionsPagamentos);
-const entregaProxy = createProxyMiddleware(optionsEntrega);
+const agedamentoProxy = createProxyMiddleware(optionsAgendamento);
+
 
 // Rota padrão
 app.get('/', (req, res) => res.send('Hello Gateway API'));
@@ -44,22 +33,14 @@ app.use(Logger.log);
 app.use(Auth.validate);
 
 // Rotas encaminhadas para os microserviços
-app.get('/checkout/:pedidoId/status', pagamentosProxy);
-app.post('/checkout', pagamentosProxy);
-app.put('/checkout/hook/:pedido_id', pagamentosProxy);
 
-app.get('/pedidos', pedidosProxy);
-app.post('/pedidos', pedidosProxy);
-app.put('/pedidos/update/:id', pedidosProxy);
-app.get('/pedidos/:id', pedidosProxy);
-
-app.get('/produto', pedidosProxy);
-
-
-app.get('/producao', entregaProxy);
-app.post('/producao', entregaProxy);
-app.put('/producao/update/:idPedido', entregaProxy);
-app.get('/producao/:idPedido', entregaProxy);
+app.get('/login', agedamentoProxy);//Autenticação do Usuário (Paciente)  //Autenticação do Usuário (Médico) 
+app.get('/medicos', agedamentoProxy);//Busca por Médicos (Paciente) 
+app.post('/agenda', agedamentoProxy);//Cadastro/Edição de Horários Disponíveis (Médico)
+app.post('/agenda/confima', agedamentoProxy);//Aceite de Consultas Médicas (Médico) 
+app.post('/agenda/recusa', agedamentoProxy);// Recusa de Consultas Médicas (Médico) 
+app.put('/agenda/update/:id', agedamentoProxy);// Cadastro/Edição de Horários Disponíveis (Médico)  
+app.post('/agendamento', agedamentoProxy);//Agendamento de Consultas (Paciente) 
 
 
 
